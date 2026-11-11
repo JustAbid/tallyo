@@ -8,6 +8,7 @@ dist/
 !.env.example
 
 # local data and build output
+server/data/
 *.db
 *.sqlite
 *.log
