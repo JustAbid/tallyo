@@ -6,4 +6,5 @@ dist/
 *.db
 *.sqlite
 *.log
+*.tsbuildinfo
 .DS_Store
