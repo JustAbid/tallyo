@@ -7,3 +7,12 @@ export function Mark({ size = 26 }: { size?: number }) {
     </svg>
   );
 }
+
+// The four-point sparkle that products use to say "an AI did this". Always paired with a text label.
+export function Spark({ size = 13 }: { size?: number }) {
+  return (
+    <svg className="spark" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 1.5c.6 4.6 2.3 7.9 4.6 9.6 1.6 1.2 3.4 1.7 5.9 1.9-5.9.9-9.1 3.7-10.5 10.5-.9-5.8-3.5-9.2-10.5-10.5 7-.9 9.6-4.4 10.5-11.5Z" />
+    </svg>
+  );
+}

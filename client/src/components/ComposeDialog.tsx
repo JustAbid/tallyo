@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { gmailUrl, isDemoAddress, mailtoUrl, type Compose } from '../studio/mail';
+import { Spark } from './Brand';
 
 interface Props {
   draft: Compose;
@@ -37,7 +38,13 @@ export function ComposeDialog({ draft, onClose, onNotify }: Props) {
   return (
     <div className="overlay" onMouseDown={onClose}>
       <div className="dialog" role="dialog" aria-modal="true" aria-labelledby="compose-title" onMouseDown={(e) => e.stopPropagation()}>
-        <h2 id="compose-title">{heading}</h2>
+        <div className="dialog-head">
+          <h2 id="compose-title">{heading}</h2>
+          <span className="ai-tag">
+            <Spark size={11} />
+            AI draft
+          </span>
+        </div>
         <p className="lede">Written by AI from the invoice facts. Read it, change anything you like, then send it yourself.</p>
 
         <label className="field">

@@ -10,6 +10,7 @@ It was built for the PayPal AI Hackathon 2026. Everything runs against the PayPa
 - **Reads customer replies.** "I'll pay Friday", "I already paid", "the total is wrong" and "can you resend that?" are each recognised. Gemini describes the message, and ordinary code decides what happens next.
 - **Checks PayPal.** An invoice only counts as paid through PayPal when PayPal says so. A payment you record by hand is kept apart and labelled as such.
 - **Drafts the reminder, then stops.** Each draft opens in an editor where you can change it, then open it in Gmail (or your mail app) with the recipient, subject and message already filled in. Tallyo never sends email itself.
+- **Switches between light and dark.** A toggle in the header, with a "match my computer" option that is the default.
 - **Answers questions in plain English.** Inside the dashboard, a chat agent can look things up, build widgets, draft reminders and check PayPal.
 
 ## How the decisions are made

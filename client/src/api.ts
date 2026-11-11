@@ -77,4 +77,5 @@ export const readNewReplies = () => request<ReplyReading[]>('/api/replies/analyz
 export const readReply = (id: number) => request<ReplyReading>(`/api/replies/${id}/analyze`, 'POST');
 export const draftReminder = (id: number) =>
   request<{ invoice: string; customer: string; to: string; subject: string; body: string }>(`/api/invoices/${id}/nudge`, 'POST');
-export const resetDemo =() => request<{ ok: boolean }>('/api/demo/reset', 'POST');
+export const getAiStatus = () => request<{ keyPresent: boolean; model: string }>('/api/ai/status');
+export const resetDemo = () => request<{ ok: boolean }>('/api/demo/reset', 'POST');

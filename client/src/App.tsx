@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AgStudio, AgStudioProvider } from 'ag-studio-react';
-import { loadAll, readNewReplies, resetDemo, type Customer, type Invoice, type Reply } from './api';
+import { getAiStatus, loadAll, readNewReplies, resetDemo, type Customer, type Invoice, type Reply } from './api';
 import { ComposeDialog } from './components/ComposeDialog';
-import { Mark } from './components/Brand';
+import { Mark, Spark } from './components/Brand';
 import { Skeleton } from './components/Skeleton';
+import { ThemeToggle } from './components/ThemeToggle';
+import { useTheme } from './theme';
 import { bridge, type ToastKind } from './studio/actions';
 import { aiSetup } from './studio/ai';
 import { buildStudioData } from './studio/data';
@@ -35,6 +37,8 @@ export default function App() {
   const [reading, setReading] = useState(false);
   const [page, setPage] = useState('overview');
   const [skeletonGone, setSkeletonGone] = useState(false);
+  const [aiReady, setAiReady] = useState<boolean | null>(null);
+  const [theme, setTheme] = useTheme();
   const studioApi = useRef<any>(null);
 
   const goTo = (id: string) => {
@@ -70,13 +74,8 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, [studioReady]);
 
-  // follow the operating system's light or dark setting
   useEffect(() => {
-    const query = window.matchMedia('(prefers-color-scheme: dark)');
-    const apply = () => document.documentElement.setAttribute('data-ag-theme-mode', query.matches ? 'dark' : 'light');
-    apply();
-    query.addEventListener('change', apply);
-    return () => query.removeEventListener('change', apply);
+    getAiStatus().then((s) => setAiReady(s.keyPresent), () => setAiReady(null));
   }, []);
 
   const data = useMemo(
@@ -123,8 +122,14 @@ export default function App() {
           <span className="brand-note">Overdue invoices, customer replies and PayPal payments in one place</span>
         </div>
         <div className="controls">
-          <button className={`btn${reading ? ' is-busy' : ''}`} disabled={reading || unread === 0} onClick={readReplies} title="Uses AI to work out what each unread reply is asking for">
-            {reading && <span className="spinner" />}
+          {aiReady !== null && (
+            <span className={`ai-status${aiReady ? '' : ' is-off'}`} title={aiReady ? 'The AI key is set on the server' : 'Add AI_API_KEY to server/.env to turn the AI features on'}>
+              <Spark size={12} />
+              {aiReady ? 'AI agent ready' : 'AI key missing'}
+            </span>
+          )}
+          <button className={`btn btn-ai${reading ? ' is-busy' : ''}`} disabled={reading || unread === 0} onClick={readReplies} title="Uses AI to work out what each unread reply is asking for">
+            {reading ? <span className="spinner" /> : <Spark />}
             {reading ? 'Reading' : unread ? `Read ${unread} new ${unread === 1 ? 'reply' : 'replies'}` : 'No new replies'}
           </button>
           <button className="btn btn-quiet" onClick={refresh}>
@@ -138,6 +143,7 @@ export default function App() {
               Customise
             </button>
           </div>
+          <ThemeToggle value={theme} onChange={setTheme} />
         </div>
       </header>
 

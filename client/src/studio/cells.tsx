@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { AgWidgetCustomCellRendererProps } from 'ag-studio-react';
 import { draftReminder, markPaid, publishToPayPal, syncWithPayPal } from '../api';
+import { Spark } from '../components/Brand';
 import { bridge } from './actions';
 
 type Linked = AgWidgetCustomCellRendererProps['getLinkedValue'];
@@ -52,6 +53,7 @@ export function VerificationCell({ value }: AgWidgetCustomCellRendererProps) {
 }
 
 interface MenuItem {
+  ai?: boolean;
   label: string;
   hint?: string;
   href?: string;
@@ -94,6 +96,7 @@ function Menu({ anchor, items, onClose }: { anchor: DOMRect; items: MenuItem[]; 
               item.onSelect?.();
             }}
           >
+            {item.ai && <Spark />}
             {item.label}
             {item.hint && <small>{item.hint}</small>}
           </button>
@@ -143,7 +146,7 @@ export function ActionsCell({ value, getLinkedValue }: AgWidgetCustomCellRendere
 
   const onHold = value === 'On hold';
   const items: MenuItem[] = [
-    ...(onHold ? [] : [{ label: 'Draft a reminder', hint: 'AI writes it, you send it', onSelect: () => void run('draft', work.draft) }]),
+    ...(onHold ? [] : [{ ai: true, label: 'Draft a reminder', hint: 'AI writes it, you send it', onSelect: () => void run('draft', work.draft) }]),
     ...(payUrl ? [{ label: 'Open the pay link', href: payUrl }] : []),
     { label: 'Mark as paid by hand', hint: 'Not verified by PayPal', onSelect: () => void run('markPaid', work.markPaid) },
   ];
@@ -188,6 +191,7 @@ export function ReplyCell({ value, getLinkedValue }: AgWidgetCustomCellRendererP
   return (
     <span className="cell-actions" ref={ref}>
       <button className="btn btn-small" data-action="reply">
+        <Spark size={11} />
         Open draft reply
       </button>
     </span>

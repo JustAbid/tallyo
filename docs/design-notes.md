@@ -18,8 +18,13 @@ Tallyo replaces the aging report in an accountant's ledger, so the look comes fr
 | Stamp red | `#b3261e` | `#f0948b` | Overdue, errors |
 | Check green | `#2a734a` | `#7fcb9c` | Confirmed by PayPal |
 | Pencil amber | `#8f5600` | `#e4b25c` | Recorded by hand, worth a look |
+| Signal violet | `#5b4aa6` | `#b9acf0` | Only what the AI does or writes |
 
-I computed the WCAG contrast ratio for every text and background pair the interface uses, in both modes. All 19 pairs pass AA (4.5:1). The tightest is the green badge text in light mode at 4.77:1, and body text is 16.9:1. The muted text colour is `#5d676d` because the lighter grey I started with fell below 4.5:1.
+Signal violet is the one deliberate "this is an AI product" cue. Reading how other design systems mark AI (Cloudscape, PatternFly, SAP), there is no standard colour. The common convention is a four-point sparkle with a text label, and they warn against relying on the icon alone. So violet appears in three places: the sparkle, the "AI draft" tag on drafts, and the buttons that start AI work (Read new replies, Draft a reminder). Everywhere else the dashboard stays in the ledger palette, so the AI reads as a distinct layer on top of the money and not as the whole look.
+
+**Theme.** A three-way toggle (light, dark, match my computer) in the header. "Match my computer" stores nothing, so someone who never touches it always follows their system. A small script in `index.html` picks the theme before the first paint to avoid a flash, and storage access is wrapped so a blocked `localStorage` cannot break the page.
+
+I computed the WCAG contrast ratio for every text and background pair the interface uses, in both modes. All 25 pairs pass AA (4.5:1). The tightest is the green badge text in light mode at 4.77:1, and body text is 16.9:1. The muted text colour is `#5d676d` because the lighter grey I started with fell below 4.5:1.
 
 **Type.** IBM Plex Sans for the interface and Plex Mono where a fixed width helps. Both are self-hosted. Plex has proper tabular figures, which matters in a table of amounts. I did not use Inter, and I did not go the other way into a serif display face with hairline rules, which is the second most common "anti-AI" look.
 
@@ -78,6 +83,14 @@ Loading and motion
 
 20. [Loading skeletons that don't lie](https://dev.to/raxxostudios/loading-skeletons-that-dont-lie-5-patterns-for-honest-perceived-performance-283p)
 21. [Skeleton screens: what they are and why they improve UX](https://clay.global/blog/skeleton-screen)
+
+AI interface conventions and themes
+
+25. [Iconography for generative AI (Cloudscape)](https://cloudscape.design/gen-ai/foundation/iconography/)
+26. [AI design language (PatternFly)](https://www.patternfly.org/ai/design-language)
+27. [AI colors (SAP Fiori)](https://www.sap.com/design-system/fiori-design-web/v1-145/foundations/ai-and-joule-design/foundation/ai-colors)
+28. [Dark mode toggles (Chrome developers)](https://developer.chrome.com/docs/modern-web-guidance/guides/ui-components/dark-mode-toggle)
+29. [Semantic colour palette (ServiceTitan Anvil)](https://anvil.servicetitan.com/docs/web/data-visualization/semantic-color-palette)
 
 Copy and writing
 

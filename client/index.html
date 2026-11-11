@@ -6,6 +6,23 @@
     <title>Tallyo: overdue invoices, replies and PayPal payments</title>
     <meta name="description" content="Tallyo reads customer replies to overdue invoices, drafts friendly reminders, and checks PayPal to see whether the money arrived." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      // Pick the theme before anything paints so there is no flash of the wrong one.
+      (function () {
+        var mode = 'light';
+        try {
+          var saved = localStorage.getItem('tallyo-theme');
+          if (saved === 'light' || saved === 'dark') mode = saved;
+          else if (window.matchMedia('(prefers-color-scheme: dark)').matches) mode = 'dark';
+        } catch (e) {
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) mode = 'dark';
+        }
+        var root = document.documentElement;
+        root.setAttribute('data-theme', mode);
+        root.setAttribute('data-ag-theme-mode', mode);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

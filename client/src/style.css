@@ -28,33 +28,44 @@
   --held: #8f5600;
   --held-soft: #f4e6cc;
 
+  /* signal violet is reserved for what the AI does or writes, and nothing else */
+  --signal: #5b4aa6;
+  --signal-ink: #ffffff;
+  --signal-soft: #ebe7f7;
+
+  color-scheme: light;
+
   --font: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
   --ease: cubic-bezier(0.2, 0, 0, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #0f1316;
-    --surface: #151b1f;
-    --band: #12181b;
-    --ink: #e8ecee;
-    --ink-2: #aab4b9;
-    --ink-3: #8f9aa0;
-    --line: #26313a;
-    --line-strong: #364450;
+/* The theme is set on <html data-theme="light|dark"> by a script in index.html (before first paint)
+   and by the toggle in the header. "System" simply resolves to one of the two. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --signal: #b9acf0;
+  --signal-ink: #1a1430;
+  --signal-soft: #2a2347;
+  --paper: #0f1316;
+  --surface: #151b1f;
+  --band: #12181b;
+  --ink: #e8ecee;
+  --ink-2: #aab4b9;
+  --ink-3: #8f9aa0;
+  --line: #26313a;
+  --line-strong: #364450;
 
-    --accent: #86b6de;
-    --accent-ink: #0b1a26;
-    --accent-soft: #1b2e3e;
-    --late: #f0948b;
-    --late-soft: #3a1f1d;
-    --settled: #7fcb9c;
-    --settled-soft: #17301f;
-    --held: #e4b25c;
-    --held-soft: #3a2c10;
-  }
+  --accent: #86b6de;
+  --accent-ink: #0b1a26;
+  --accent-soft: #1b2e3e;
+  --late: #f0948b;
+  --late-soft: #3a1f1d;
+  --settled: #7fcb9c;
+  --settled-soft: #17301f;
+  --held: #e4b25c;
+  --held-soft: #3a2c10;
 }
 
 * { box-sizing: border-box; }
@@ -130,6 +141,24 @@ code { font-family: var(--mono); font-size: 0.92em; }
   font-weight: 600;
 }
 
+/* theme toggle */
+.theme { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 4px; overflow: hidden; }
+.theme button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background-color 120ms var(--ease), color 120ms var(--ease);
+}
+.theme button + button { border-left: 1px solid var(--line-strong); }
+.theme button:hover:not([aria-pressed='true']) { background: var(--band); color: var(--ink); }
+.theme button[aria-pressed='true'] { background: var(--accent-soft); color: var(--accent); }
+
 /* buttons */
 .btn {
   font: inherit;
@@ -147,6 +176,39 @@ code { font-family: var(--mono); font-size: 0.92em; }
 .btn:active:not(:disabled) { transform: translateY(1px); }
 .btn:disabled { opacity: 0.5; cursor: default; }
 .btn.is-busy { cursor: progress; }
+/* buttons that start AI work */
+.btn-ai {
+  border-color: var(--signal);
+  background: var(--signal);
+  color: var(--signal-ink);
+}
+.btn-ai:disabled { background: transparent; border-color: var(--line-strong); color: var(--ink-3); opacity: 1; }
+.spark { flex: none; vertical-align: -2px; margin-right: 5px; }
+.ai-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px 1px 5px;
+  border-radius: 3px;
+  background: var(--signal-soft);
+  color: var(--signal);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.ai-tag .spark { margin-right: 3px; }
+.ai-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px 3px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.ai-status .spark { color: var(--signal); margin-right: 5px; vertical-align: 0; }
+.ai-status.is-off { border-color: var(--late); color: var(--late); }
+.ai-status.is-off .spark { color: var(--late); }
+
 .btn-quiet {
   background: transparent;
   color: var(--ink);
@@ -332,6 +394,7 @@ code { font-family: var(--mono); font-size: 0.92em; }
 }
 .menu button:hover, .menu a:hover { background: var(--band); }
 .menu small { display: block; color: var(--ink-3); font-size: 11.5px; }
+.menu .spark { color: var(--signal); }
 
 /* "who still owes you" widget */
 .owes { height: 100%; overflow: auto; padding: 4px 16px 12px; }
@@ -376,6 +439,8 @@ code { font-family: var(--mono); font-size: 0.92em; }
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
   animation: rise 180ms var(--ease);
 }
+.dialog { border-top: 3px solid var(--signal); }
+.dialog-head { display: flex; align-items: center; gap: 10px; }
 .dialog h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.005em; }
 .dialog .lede { margin: 4px 0 14px; color: var(--ink-3); font-size: 13px; }
 .field { display: block; margin-top: 12px; }
