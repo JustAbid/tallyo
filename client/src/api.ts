@@ -71,6 +71,7 @@ export interface ReplyReading {
   intent?: string;
   summary?: string;
   action?: string;
+  draft_reply?: string;
   error?: string;
 }
 export const readNewReplies = () => request<ReplyReading[]>('/api/replies/analyze-pending', 'POST');

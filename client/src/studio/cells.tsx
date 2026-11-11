@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { AgWidgetCustomCellRendererProps } from 'ag-studio-react';
-import { draftReminder, markPaid, publishToPayPal, syncWithPayPal } from '../api';
+import { draftReminder, markPaid, publishToPayPal, readReply, syncWithPayPal } from '../api';
 import { Spark } from '../components/Brand';
 import { bridge } from './actions';
 
@@ -179,20 +179,40 @@ export function ActionsCell({ value, getLinkedValue }: AgWidgetCustomCellRendere
 }
 
 export function ReplyCell({ value, getLinkedValue }: AgWidgetCustomCellRendererProps) {
+  const [busy, setBusy] = useState(false);
   const body = String(linked(getLinkedValue, 'replies.draftReply') ?? '');
   const to = String(linked(getLinkedValue, 'replies.customerEmail') ?? '');
   const invoice = String(linked(getLinkedValue, 'replies.invoiceNumber') ?? '');
+  const id = Number(linked(getLinkedValue, 'replies.id'));
+  const subject = `Re: Invoice ${invoice}`;
+
+  // Replies that were read before a draft existed get one on demand.
+  const writeDraft = async () => {
+    setBusy(true);
+    try {
+      const result = await readReply(id);
+      await bridge.refresh();
+      if (result.draft_reply) bridge.compose({ kind: 'reply', invoice, to, subject, body: result.draft_reply });
+      else bridge.notify('The AI did not write a draft. Try again.', 'error');
+    } catch (e) {
+      bridge.notify(e instanceof Error ? e.message : 'Could not write the draft', 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const ref = useCellClicks((action) => {
-    if (action === 'reply') bridge.compose({ kind: 'reply', invoice, to, subject: `Re: Invoice ${invoice}`, body });
+    if (busy) return;
+    if (action === 'reply') bridge.compose({ kind: 'reply', invoice, to, subject, body });
+    if (action === 'write') void writeDraft();
   });
 
-  if (!body) return <span className="muted">{value === 'No draft' ? 'No draft' : 'Not read yet'}</span>;
+  if (!body && value === 'Not read yet') return <span className="muted">Not read yet</span>;
   return (
     <span className="cell-actions" ref={ref}>
-      <button className="btn btn-small" data-action="reply">
-        <Spark size={11} />
-        Open draft reply
+      <button className={`btn btn-small${busy ? ' is-busy' : ''}`} disabled={busy} data-action={body ? 'reply' : 'write'}>
+        {busy ? <span className="spinner" /> : <Spark size={11} />}
+        {body ? 'Open draft reply' : 'Write draft'}
       </button>
     </span>
   );

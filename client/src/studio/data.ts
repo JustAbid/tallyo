@@ -136,6 +136,7 @@ export function buildStudioData(invoices: Invoice[], customers: Customer[], repl
                 { id: 'replies.draftReply', aggregation: 'first' },
                 { id: 'replies.customerEmail', aggregation: 'first' },
                 { id: 'replies.invoiceNumber', aggregation: 'first' },
+                { id: 'replies.id', aggregation: 'first' },
               ],
             },
           },
