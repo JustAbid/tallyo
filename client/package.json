@@ -10,8 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "ag-grid-community": "^36.3.0",
-    "ag-grid-react": "^36.3.0",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/ibm-plex-sans": "^5.3.0",
     "ag-studio": "^3.1.0",
     "ag-studio-react": "^3.1.0",
     "react": "^19.3.1",

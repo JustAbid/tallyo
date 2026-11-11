@@ -113,7 +113,7 @@ export function listReplies() {
     .prepare(
       `SELECT r.id, r.invoice_id AS invoiceId, i.number AS invoiceNumber, c.name AS customer,
               r.received_at AS receivedAt, r.body, r.intent, r.promised_date AS promisedDate,
-              r.summary, r.action_taken AS actionTaken, r.draft_reply AS draftReply
+              r.summary, r.action_taken AS actionTaken, r.draft_reply AS draftReply, c.email AS customerEmail
        FROM replies r
        JOIN invoices i ON i.id = r.invoice_id
        JOIN customers c ON c.id = i.customer_id
@@ -143,6 +143,7 @@ export function getSummary() {
   };
 }
 
+// money is summed in cents so totals never show floating point noise
 function sum(values: number[]) {
-  return values.reduce((a, b) => a + b, 0);
+  return Math.round(values.reduce((a, b) => a + Math.round(b * 100), 0)) / 100;
 }

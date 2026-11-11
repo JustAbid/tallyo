@@ -1,32 +1,39 @@
-// The report people see first. Layout is a 24-column grid.
+﻿// The report people see first, split into four pages by the job each one does.
+// Each page lays its widgets out on a 24-column grid.
 const sum = (id: string) => ({ id, aggregation: 'sum' });
-const title = (text: string) => ({ title: { text, enabled: true } });
+const title = (text: string) => ({ title: { text, enabled: true, typography: { fontSize: 14, fontWeight: 'bold' } } });
+const bigNumber = (text: string, size: number) => ({
+  ...title(text),
+  style: { typography: { fontSize: size, fontWeight: 'bold' } },
+});
+const cols = (...ids: string[]) => ids.map((id) => ({ id }));
 
 export const defaultReport = {
   selectedPageId: 'overview',
   pages: [
     {
       id: 'overview',
+      name: 'Overview',
       widgets: {
-        outstanding: {
-          type: 'value',
-          format: title('Still to collect'),
-          dataMapping: { value: [sum('customers.outstanding')] },
-        },
         overdue: {
           type: 'value',
-          format: title('Overdue'),
+          format: bigNumber('Overdue right now', 46),
           dataMapping: { value: [sum('customers.overdue')] },
+        },
+        outstanding: {
+          type: 'value',
+          format: bigNumber('Still to collect', 32),
+          dataMapping: { value: [sum('customers.outstanding')] },
         },
         billed: {
           type: 'value',
-          format: title('Billed in total'),
+          format: bigNumber('Billed in total', 32),
           dataMapping: { value: [sum('customers.totalBilled')] },
         },
         aging: {
           type: 'column-chart-grouped',
           format: title('How late is the money?'),
-          dataMapping: { categoryKey: [{ id: 'invoices.agingBucket' }], valueKey: [sum('invoices.amount')] },
+          dataMapping: { categoryKey: [{ id: 'aging.bucket' }], valueKey: [sum('aging.amount')] },
         },
         board: {
           type: 'owes-scoreboard',
@@ -43,46 +50,96 @@ export const defaultReport = {
           format: title('How it was paid'),
           dataMapping: { categoryKey: [{ id: 'invoices.verification' }], valueKey: [sum('invoices.amount')] },
         },
-        invoices: {
-          type: 'grid',
-          format: title('Invoices'),
-          dataMapping: {
-            cols: [
-              { id: 'invoices.number' },
-              { id: 'invoices.customer' },
-              { id: 'invoices.amount' },
-              { id: 'invoices.dueAt' },
-              { id: 'invoices.daysOverdue' },
-              { id: 'invoices.status' },
-              { id: 'invoices.lastReplyIntent' },
-              { id: 'invoices.verification' },
-              { id: 'invoices.nextAction' },
-            ],
-          },
-        },
         replies: {
           type: 'grid',
-          format: title('Customer replies'),
+          format: title('Latest customer replies'),
           dataMapping: {
-            cols: [
-              { id: 'replies.invoiceNumber' },
-              { id: 'replies.customer' },
-              { id: 'replies.body' },
-              { id: 'replies.intent' },
-              { id: 'replies.actionTaken' },
-            ],
+            cols: cols('replies.invoiceNumber', 'replies.customer', 'replies.body', 'replies.intent', 'replies.replyAction'),
           },
         },
       },
       widgetLayout: {
-        outstanding: { xTrack: 0, yTrack: 0, xSpan: 8, ySpan: 5 },
-        overdue: { xTrack: 8, yTrack: 0, xSpan: 8, ySpan: 5 },
-        billed: { xTrack: 16, yTrack: 0, xSpan: 8, ySpan: 5 },
-        aging: { xTrack: 0, yTrack: 5, xSpan: 10, ySpan: 13 },
-        board: { xTrack: 10, yTrack: 5, xSpan: 8, ySpan: 13 },
-        checks: { xTrack: 18, yTrack: 5, xSpan: 6, ySpan: 13 },
-        invoices: { xTrack: 0, yTrack: 18, xSpan: 24, ySpan: 16 },
-        replies: { xTrack: 0, yTrack: 34, xSpan: 24, ySpan: 10 },
+        overdue: { xTrack: 0, yTrack: 0, xSpan: 10, ySpan: 7 },
+        outstanding: { xTrack: 10, yTrack: 0, xSpan: 7, ySpan: 7 },
+        billed: { xTrack: 17, yTrack: 0, xSpan: 7, ySpan: 7 },
+        aging: { xTrack: 0, yTrack: 7, xSpan: 12, ySpan: 22 },
+        board: { xTrack: 12, yTrack: 7, xSpan: 7, ySpan: 22 },
+        checks: { xTrack: 19, yTrack: 7, xSpan: 5, ySpan: 22 },
+        replies: { xTrack: 0, yTrack: 29, xSpan: 24, ySpan: 14 },
+      },
+    },
+    {
+      id: 'invoices',
+      name: 'Invoices',
+      widgets: {
+        invoices: {
+          type: 'grid',
+          format: title('All invoices'),
+          dataMapping: {
+            cols: cols(
+              'invoices.number',
+              'invoices.customer',
+              'invoices.amount',
+              'invoices.dueAt',
+              'invoices.daysOverdue',
+              'invoices.status',
+              'invoices.verification',
+              'invoices.nextAction',
+            ),
+          },
+        },
+      },
+      widgetLayout: { invoices: { xTrack: 0, yTrack: 0, xSpan: 24, ySpan: 48 } },
+    },
+    {
+      id: 'replies',
+      name: 'Replies',
+      widgets: {
+        replies: {
+          type: 'grid',
+          format: title('Customer replies'),
+          dataMapping: {
+            cols: cols(
+              'replies.invoiceNumber',
+              'replies.customer',
+              'replies.body',
+              'replies.intent',
+              'replies.replyAction',
+              'replies.actionTaken',
+            ),
+          },
+        },
+      },
+      widgetLayout: { replies: { xTrack: 0, yTrack: 0, xSpan: 24, ySpan: 42 } },
+    },
+    {
+      id: 'customers',
+      name: 'Customers',
+      widgets: {
+        late: {
+          type: 'bar-chart-grouped',
+          format: title('Overdue by customer'),
+          dataMapping: { categoryKey: [{ id: 'customers.name' }], valueKey: [sum('customers.overdue')] },
+        },
+        customers: {
+          type: 'grid',
+          format: title('Customers'),
+          dataMapping: {
+            cols: cols(
+              'customers.name',
+              'customers.email',
+              'customers.invoiceCount',
+              'customers.totalBilled',
+              'customers.outstanding',
+              'customers.overdue',
+              'customers.avgDaysOverdue',
+            ),
+          },
+        },
+      },
+      widgetLayout: {
+        late: { xTrack: 0, yTrack: 0, xSpan: 8, ySpan: 38 },
+        customers: { xTrack: 8, yTrack: 0, xSpan: 16, ySpan: 38 },
       },
     },
   ],

@@ -171,6 +171,7 @@ export async function draftNudge(invoiceId: number) {
   ].join('\n');
 
   const draft = await generateJson<{ subject: string; body: string }>(nudgeSystem, prompt, nudgeSchema);
+  const owner = db.prepare('SELECT email FROM customers WHERE id = ?').get(invoice.customerId) as { email: string } | undefined;
   addEvent(invoiceId, 'nudge_drafted', draft.subject);
-  return { invoice: invoice.number, ...draft };
+  return { invoice: invoice.number, customer: invoice.customer, to: owner?.email ?? '', ...draft };
 }

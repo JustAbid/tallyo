@@ -1,9 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AgStudio, AgStudioProvider } from 'ag-studio-react';
 import { loadAll, readNewReplies, resetDemo, type Customer, type Invoice, type Reply } from './api';
-import { bridge, type Draft, type ToastKind } from './studio/actions';
+import { ComposeDialog } from './components/ComposeDialog';
+import { Mark } from './components/Brand';
+import { Skeleton } from './components/Skeleton';
+import { bridge, type ToastKind } from './studio/actions';
 import { aiSetup } from './studio/ai';
 import { buildStudioData } from './studio/data';
+import type { Compose } from './studio/mail';
 import { defaultReport } from './studio/report';
 import { tallyoTheme } from './studio/theme';
 import { widgets } from './studio/widgets';
@@ -14,13 +18,31 @@ interface Snapshot {
   replies: Reply[];
 }
 
+const pages = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'invoices', label: 'Invoices' },
+  { id: 'replies', label: 'Replies' },
+  { id: 'customers', label: 'Customers' },
+];
+
 export default function App() {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [studioReady, setStudioReady] = useState(false);
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   const [toast, setToast] = useState<{ text: string; kind: ToastKind } | null>(null);
-  const [draft, setDraft] = useState<Draft | null>(null);
+  const [compose, setCompose] = useState<Compose | null>(null);
   const [reading, setReading] = useState(false);
+  const [page, setPage] = useState('overview');
+  const [skeletonGone, setSkeletonGone] = useState(false);
+  const studioApi = useRef<any>(null);
+
+  const goTo = (id: string) => {
+    const api = studioApi.current;
+    if (!api) return;
+    api.setState({ ...api.getState(), selectedPageId: id });
+    setPage(id);
+  };
 
   const refresh = useCallback(async () => {
     try {
@@ -33,13 +55,20 @@ export default function App() {
 
   useEffect(() => {
     bridge.refresh = refresh;
-    bridge.showDraft = setDraft;
+    bridge.compose = setCompose;
     bridge.notify = (text, kind = 'ok') => {
       setToast({ text, kind });
       window.setTimeout(() => setToast(null), 4500);
     };
     refresh();
   }, [refresh]);
+
+  // let the loading skeleton finish fading, then remove it from the page for good
+  useEffect(() => {
+    if (!studioReady) return;
+    const timer = window.setTimeout(() => setSkeletonGone(true), 450);
+    return () => window.clearTimeout(timer);
+  }, [studioReady]);
 
   // follow the operating system's light or dark setting
   useEffect(() => {
@@ -63,7 +92,10 @@ export default function App() {
       const results = await readNewReplies();
       const failed = results.filter((r) => r.error).length;
       await refresh();
-      bridge.notify(failed ? `Read ${results.length - failed} replies, ${failed} failed` : `Read ${results.length} replies`, failed ? 'error' : 'ok');
+      bridge.notify(
+        failed ? `Read ${results.length - failed} of ${results.length} replies. ${failed} could not be read.` : `Read ${results.length} ${results.length === 1 ? 'reply' : 'replies'}.`,
+        failed ? 'error' : 'ok',
+      );
     } catch (e) {
       bridge.notify(e instanceof Error ? e.message : 'Could not read the replies', 'error');
     } finally {
@@ -72,84 +104,105 @@ export default function App() {
   };
 
   const reset = async () => {
-    if (!window.confirm('Reset all demo data? PayPal payments you recorded here will be forgotten.')) return;
-    await resetDemo();
-    await refresh();
-    bridge.notify('Demo data reset');
+    if (!window.confirm('Reset the demo data? Payments you recorded here will be forgotten, but nothing in PayPal is touched.')) return;
+    try {
+      await resetDemo();
+      await refresh();
+      bridge.notify('Demo data reset.');
+    } catch (e) {
+      bridge.notify(e instanceof Error ? e.message : 'Could not reset the data', 'error');
+    }
   };
 
   return (
-    <div className="shell">
-      <header>
+    <div className="app">
+      <header className="topbar">
         <div className="brand">
-          <span className="logo">T</span>
-          <div>
-            <h1>Tallyo</h1>
-            <p>Get paid on time, without the awkward emails.</p>
-          </div>
+          <Mark />
+          <span className="wordmark">Tallyo</span>
+          <span className="brand-note">Overdue invoices, customer replies and PayPal payments in one place</span>
         </div>
-        <div className="header-actions">
-          <span className="demo-pill">Demo data · PayPal Sandbox</span>
-          <button disabled={reading || unread === 0} onClick={readReplies} title="Uses AI to understand each unread customer reply">
-            {reading ? 'Reading…' : unread ? `Read ${unread} new ${unread === 1 ? 'reply' : 'replies'}` : 'No new replies'}
+        <div className="controls">
+          <button className={`btn${reading ? ' is-busy' : ''}`} disabled={reading || unread === 0} onClick={readReplies} title="Uses AI to work out what each unread reply is asking for">
+            {reading && <span className="spinner" />}
+            {reading ? 'Reading' : unread ? `Read ${unread} new ${unread === 1 ? 'reply' : 'replies'}` : 'No new replies'}
           </button>
-          <button className="ghost" onClick={refresh}>Refresh</button>
-          <button className="ghost" onClick={() => setMode(mode === 'view' ? 'edit' : 'view')}>
-            {mode === 'view' ? 'Customise dashboard' : 'Done customising'}
+          <button className="btn btn-quiet" onClick={refresh}>
+            Refresh
           </button>
-          <button className="ghost" onClick={reset}>Reset demo</button>
+          <div className="seg" role="group" aria-label="Dashboard mode">
+            <button aria-pressed={mode === 'view'} onClick={() => setMode('view')}>
+              View
+            </button>
+            <button aria-pressed={mode === 'edit'} onClick={() => setMode('edit')}>
+              Customise
+            </button>
+          </div>
         </div>
       </header>
 
-      <main>
-        {error && (
-          <div className="notice">
-            Can't reach the Tallyo server ({error}). Start it with <code>npm run dev</code> in the <code>server</code> folder.
-          </div>
-        )}
-        {data && (
-          <AgStudioProvider licenseKey={import.meta.env.VITE_AG_STUDIO_LICENSE}>
-            <AgStudio
-              data={data as any}
-              mode={mode}
-              theme={tallyoTheme}
-              widgets={widgets as any}
-              initialState={defaultReport as any}
-              ai={aiSetup as any}
-              onApiReady={(e: any) => {
-                if (import.meta.env.DEV) (window as any).__studio = e.api;
-              }}
-              onErrorRaised={(e: any) => console.warn('Studio error', e)}
-            />
-          </AgStudioProvider>
-        )}
-      </main>
+      <nav className="tabs" aria-label="Dashboard pages">
+        {pages.map((p) => (
+          <button key={p.id} className="tab" aria-current={page === p.id ? 'page' : undefined} onClick={() => goTo(p.id)} disabled={!studioReady}>
+            {p.label}
+            {p.id === 'replies' && unread > 0 && <span className="tab-count">{unread}</span>}
+          </button>
+        ))}
+      </nav>
 
-      {draft && (
-        <div className="overlay" onClick={() => setDraft(null)}>
-          <div className="draft" role="dialog" aria-label="Draft reminder" onClick={(e) => e.stopPropagation()}>
-            <h2>Draft reminder for {draft.invoice}</h2>
-            <p className="muted">Written by AI from the invoice facts. Nothing has been sent. Review it, then send it yourself.</p>
-            <label>Subject</label>
-            <div className="draft-box">{draft.subject}</div>
-            <label>Message</label>
-            <div className="draft-box draft-body">{draft.body}</div>
-            <div className="draft-actions">
-              <button
-                onClick={() => {
-                  navigator.clipboard?.writeText(`${draft.subject}\n\n${draft.body}`);
-                  bridge.notify('Copied to the clipboard');
-                }}
-              >
-                Copy
+      <div className="stage">
+        {error && (
+          <div className="notice" role="alert">
+            <strong>Tallyo can't reach its server.</strong>
+            <span>{error}. Start it with <code>npm run dev</code> in the <code>server</code> folder, then try again.</span>
+            <div>
+              <button className="btn" onClick={refresh}>
+                Try again
               </button>
-              <button className="ghost" onClick={() => setDraft(null)}>Close</button>
             </div>
           </div>
+        )}
+
+        {!error && !skeletonGone && <Skeleton done={studioReady} />}
+
+        {data && (
+          <div className={`studio${studioReady ? ' is-ready' : ''}`}>
+            <AgStudioProvider licenseKey={import.meta.env.VITE_AG_STUDIO_LICENSE}>
+              <AgStudio
+                data={data as any}
+                mode={mode}
+                theme={tallyoTheme}
+                widgets={widgets as any}
+                initialState={defaultReport as any}
+                ai={aiSetup as any}
+                onApiReady={(e: any) => {
+                  studioApi.current = e.api;
+                  if (import.meta.env.DEV) (window as any).__studio = e.api;
+                  window.setTimeout(() => setStudioReady(true), 350);
+                }}
+                onErrorRaised={(e: any) => console.warn('Studio error', e)}
+              />
+            </AgStudioProvider>
+          </div>
+        )}
+      </div>
+
+      <footer className="statusbar">
+        <span>
+          <span className="dot" />
+          PayPal Sandbox. No real money moves.
+        </span>
+        <span>Demo data</span>
+        <span className="spacer" />
+        <button onClick={reset}>Reset demo data</button>
+      </footer>
+
+      {compose && <ComposeDialog draft={compose} onClose={() => setCompose(null)} onNotify={(m) => bridge.notify(m, 'error')} />}
+      {toast && (
+        <div className={`toast toast-${toast.kind}`} role="status">
+          {toast.text}
         </div>
       )}
-
-      {toast && <div className={`toast toast-${toast.kind}`}>{toast.text}</div>}
     </div>
   );
 }

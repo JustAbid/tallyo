@@ -11,9 +11,31 @@ const intentLabels: Record<string, string> = {
   other: 'Needs a person',
 };
 
+const buckets = ['Current', 'Late 1-30 days', 'Late 31-60 days', 'Late 61-90 days', 'Late 90+ days'];
+
+// Unpaid money by age. Built here so the aging chart never counts invoices that are already paid.
+function agingRows(invoices: Invoice[]) {
+  return buckets.map((bucket) => {
+    const open = invoices.filter((i) => i.status !== 'paid' && i.agingBucket === bucket);
+    return { bucket, amount: Math.round(open.reduce((n, i) => n + i.amount * 100, 0)) / 100, invoices: open.length };
+  });
+}
+
 export function buildStudioData(invoices: Invoice[], customers: Customer[], replies: Reply[]) {
   return {
     sources: [
+      {
+        id: 'aging',
+        name: 'Aging',
+        description: 'Unpaid invoices grouped by how late they are. Paid invoices are not counted.',
+        primaryKeyField: 'bucket',
+        data: agingRows(invoices),
+        fields: [
+          { id: 'bucket', name: 'Age', format: 'textFormat' },
+          { id: 'amount', name: 'Unpaid amount', ...money },
+          { id: 'invoices', name: 'Unpaid invoices', format: 'integerFormat' },
+        ],
+      },
       {
         id: 'invoices',
         name: 'Invoices',
@@ -21,6 +43,7 @@ export function buildStudioData(invoices: Invoice[], customers: Customer[], repl
         primaryKeyField: 'id',
         data: invoices.map((i) => ({
           ...i,
+          lastReplyIntent: i.lastReplyIntent === 'none' ? 'No reply' : (intentLabels[i.lastReplyIntent] ?? i.lastReplyIntent),
           paidAt: i.paidAt ?? undefined,
           promisedDate: i.promisedDate ?? undefined,
           paypalInvoiceId: i.paypalInvoiceId ?? '',
@@ -31,7 +54,7 @@ export function buildStudioData(invoices: Invoice[], customers: Customer[], repl
           { id: 'customerId', format: 'integerFormat', hide: true },
           { id: 'number', name: 'Invoice', format: 'textFormat' },
           { id: 'customer', name: 'Customer', format: 'textFormat' },
-          { id: 'amount', name: 'Amount', ...money },
+          { id: 'amount', name: 'Amount', format: 'currencyFormat', formatOptions: { format: '$#,##0.00' } },
           { id: 'currency', format: 'textFormat', hide: true },
           { id: 'issuedAt', name: 'Issued', format: 'dateFormat', formatOptions: { format: 'dd mmm yyyy' } },
           { id: 'dueAt', name: 'Due', format: 'dateFormat', formatOptions: { format: 'dd mmm yyyy' } },
@@ -88,6 +111,7 @@ export function buildStudioData(invoices: Invoice[], customers: Customer[], repl
           summary: r.summary ?? '',
           actionTaken: r.actionTaken ?? '',
           draftReply: r.draftReply ?? '',
+          replyAction: r.draftReply ? 'Draft ready' : r.intent ? 'No draft' : 'Not read yet',
         })),
         fields: [
           { id: 'id', format: 'integerFormat', hide: true },
@@ -101,6 +125,20 @@ export function buildStudioData(invoices: Invoice[], customers: Customer[], repl
           { id: 'summary', name: 'Summary', format: 'textFormat' },
           { id: 'actionTaken', name: 'What Tallyo did', format: 'textFormat' },
           { id: 'draftReply', name: 'Draft reply', format: 'textFormat' },
+          { id: 'customerEmail', format: 'textFormat', hide: true },
+          {
+            id: 'replyAction',
+            name: 'Reply',
+            format: 'textFormat',
+            context: {
+              cellRenderer: 'reply',
+              linkedFields: [
+                { id: 'replies.draftReply', aggregation: 'first' },
+                { id: 'replies.customerEmail', aggregation: 'first' },
+                { id: 'replies.invoiceNumber', aggregation: 'first' },
+              ],
+            },
+          },
         ],
       },
     ],

@@ -42,6 +42,7 @@ export interface Reply {
   summary: string | null;
   actionTaken: string | null;
   draftReply: string | null;
+  customerEmail: string;
 }
 
 async function request<T>(path: string, method = 'GET'): Promise<T> {
@@ -74,5 +75,6 @@ export interface ReplyReading {
 }
 export const readNewReplies = () => request<ReplyReading[]>('/api/replies/analyze-pending', 'POST');
 export const readReply = (id: number) => request<ReplyReading>(`/api/replies/${id}/analyze`, 'POST');
-export const draftReminder = (id: number) => request<{ invoice: string; subject: string; body: string }>(`/api/invoices/${id}/nudge`, 'POST');
+export const draftReminder = (id: number) =>
+  request<{ invoice: string; customer: string; to: string; subject: string; body: string }>(`/api/invoices/${id}/nudge`, 'POST');
 export const resetDemo =() => request<{ ok: boolean }>('/api/demo/reset', 'POST');

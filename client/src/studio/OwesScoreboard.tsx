@@ -57,24 +57,20 @@ export default function OwesScoreboard({ widgetApi, dataMapping }: AgWidgetParam
   const top = Math.max(...rows.map((r) => r.outstanding), 1);
 
   return (
-    <div className="scoreboard">
+    <div className="owes">
       <ol>
         {rows.slice(0, 8).map((r, i) => (
           <li key={r.name}>
-            <span className="rank">{i + 1}</span>
-            <div className="who">
-              <div className="row">
-                <strong>{r.name}</strong>
-                <span>{usd(r.outstanding)}</span>
-              </div>
-              <div className="bar">
-                <div className="bar-overdue" style={{ width: `${(r.overdue / top) * 100}%` }} />
-                <div className="bar-rest" style={{ width: `${((r.outstanding - r.overdue) / top) * 100}%` }} />
-              </div>
-              <div className="sub">
-                {r.overdue > 0 ? `${usd(r.overdue)} overdue, about ${r.days} days late on average` : 'Nothing overdue'}
-              </div>
+            <span className="rank">{String(i + 1).padStart(2, '0')}</span>
+            <span className="name">{r.name}</span>
+            <span className="total">{usd(r.outstanding)}</span>
+            <div className="meter" role="img" aria-label={`${usd(r.overdue)} of ${usd(r.outstanding)} is overdue`}>
+              <div className="meter-late" style={{ width: `${(r.overdue / top) * 100}%` }} />
+              <div className="meter-rest" style={{ width: `${((r.outstanding - r.overdue) / top) * 100}%` }} />
             </div>
+            <span className="note">
+              {r.overdue > 0 ? `${usd(r.overdue)} overdue, about ${r.days} days late on average` : 'Nothing overdue'}
+            </span>
           </li>
         ))}
       </ol>

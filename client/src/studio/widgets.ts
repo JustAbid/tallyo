@@ -1,5 +1,5 @@
 import { createWidgets } from 'ag-studio-react';
-import { ActionsCell, VerificationCell } from './cells';
+import { ActionsCell, ReplyCell, VerificationCell } from './cells';
 import OwesScoreboard from './OwesScoreboard';
 
 const numeric = (per = 'dataMapping.who') => ({
@@ -35,6 +35,7 @@ const scoreboardWidget = {
 const renderers: Record<string, any> = {
   verification: VerificationCell,
   actions: ActionsCell,
+  reply: ReplyCell,
 };
 
 const cellOptions = {
