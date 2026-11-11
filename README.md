@@ -8,7 +8,7 @@ Built for the PayPal AI Hackathon 2026. It only uses the PayPal Sandbox, so no r
 
 You need Node.js 20.19+ or 22.12+.
 
-1. Copy `.env.example` to `server/.env` and fill in your own keys.
+1. Copy `.env.example` to `server/.env` and fill in your own keys. Put your AG Studio licence in `client/.env.local` as `VITE_AG_STUDIO_LICENSE=...` (AG Studio also runs without one, with a watermark).
 2. Start the server:
    ```
    cd server

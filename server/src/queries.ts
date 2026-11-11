@@ -9,15 +9,16 @@ const startOfToday = () => {
 
 const daysBetween = (from: string, to: number) => Math.round((to - Date.parse(from)) / DAY);
 
-export type AgingBucket = 'Not due' | '1-30 days' | '31-60 days' | '61-90 days' | '90+ days' | 'Paid';
+// These labels sort correctly in alphabetical order, which is how charts order them.
+export type AgingBucket = 'Current' | 'Late 1-30 days' | 'Late 31-60 days' | 'Late 61-90 days' | 'Late 90+ days' | 'Paid';
 
 function bucketFor(status: string, daysOverdue: number): AgingBucket {
   if (status === 'paid') return 'Paid';
-  if (daysOverdue <= 0) return 'Not due';
-  if (daysOverdue <= 30) return '1-30 days';
-  if (daysOverdue <= 60) return '31-60 days';
-  if (daysOverdue <= 90) return '61-90 days';
-  return '90+ days';
+  if (daysOverdue <= 0) return 'Current';
+  if (daysOverdue <= 30) return 'Late 1-30 days';
+  if (daysOverdue <= 60) return 'Late 31-60 days';
+  if (daysOverdue <= 90) return 'Late 61-90 days';
+  return 'Late 90+ days';
 }
 
 interface InvoiceRow {
@@ -33,7 +34,15 @@ interface InvoiceRow {
   paid_at: string | null;
   paid_via: 'paypal' | 'manual' | null;
   promised_date: string | null;
+  paypal_invoice_id: string | null;
+  paypal_pay_url: string | null;
   last_intent: string | null;
+}
+
+function nextActionFor(row: InvoiceRow) {
+  if (row.status === 'paid') return 'Done';
+  if (row.status === 'disputed') return 'On hold';
+  return row.paypal_invoice_id ? 'Check PayPal' : 'Send via PayPal';
 }
 
 export function listInvoices() {
@@ -64,7 +73,10 @@ export function listInvoices() {
       paidAt: r.paid_at,
       verification,
       promisedDate: r.promised_date,
-      lastReplyIntent: r.last_intent,
+      lastReplyIntent: r.last_intent ?? 'none',
+      paypalInvoiceId: r.paypal_invoice_id,
+      payUrl: r.paypal_pay_url,
+      nextAction: nextActionFor(r),
       daysOverdue,
       agingBucket: bucketFor(r.status, daysBetween(r.due_at, today)),
     };

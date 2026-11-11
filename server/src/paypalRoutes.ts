@@ -54,6 +54,9 @@ paypalRouter.post('/invoices/:id/publish', express.json(), async (req: Request, 
     if (!row) return res.status(404).json({ error: 'Invoice not found' });
     if (row.paypal_invoice_id) return res.status(409).json({ error: 'Already published to PayPal' });
     if (row.status === 'paid') return res.status(409).json({ error: 'Invoice is already paid' });
+    if (row.status === 'disputed') {
+      return res.status(409).json({ error: 'This invoice is disputed. Resolve the dispute before asking for payment.' });
+    }
 
     const today = new Date().toISOString().slice(0, 10);
     const { paypalId, payUrl } = await createAndSendInvoice({
