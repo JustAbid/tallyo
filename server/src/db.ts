@@ -58,8 +58,12 @@ db.exec(`
   );
 `);
 
-// databases created before this column existed
-const invoiceColumns = db.prepare('PRAGMA table_info(invoices)').all() as { name: string }[];
-if (!invoiceColumns.some((c) => c.name === 'paypal_pay_url')) {
-  db.exec('ALTER TABLE invoices ADD COLUMN paypal_pay_url TEXT');
+// databases created before these columns existed
+function addColumn(table: string, column: string, type: string) {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  if (!columns.some((c) => c.name === column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
 }
+addColumn('invoices', 'paypal_pay_url', 'TEXT');
+addColumn('replies', 'summary', 'TEXT');
+addColumn('replies', 'action_taken', 'TEXT');
+addColumn('replies', 'draft_reply', 'TEXT');

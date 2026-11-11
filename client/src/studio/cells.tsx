@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { AgWidgetCustomCellRendererProps } from 'ag-studio-react';
-import { markPaid, publishToPayPal, syncWithPayPal } from '../api';
+import { draftReminder, markPaid, publishToPayPal, syncWithPayPal } from '../api';
 import { bridge } from './actions';
 
 export function VerificationCell({ value }: AgWidgetCustomCellRendererProps) {
@@ -29,6 +29,10 @@ export function ActionsCell({ value, getLinkedValue }: AgWidgetCustomCellRendere
 
   const actions: Record<string, () => Promise<string>> = {
     publish: async () => (await publishToPayPal(id), 'Invoice sent through PayPal'),
+    draft: async () => {
+      bridge.showDraft(await draftReminder(id));
+      return 'Reminder drafted. Nothing has been sent.';
+    },
     sync: async () => (await syncWithPayPal(id)).outcome,
     markPaid: async () => (await markPaid(id)).outcome,
   };
@@ -72,6 +76,9 @@ export function ActionsCell({ value, getLinkedValue }: AgWidgetCustomCellRendere
           )}
         </>
       )}
+      <button className="ghost" disabled={busy} data-action="draft" title="Writes a friendly reminder with AI. Nothing is sent.">
+        Draft reminder
+      </button>
       <button
         className="ghost"
         disabled={busy}

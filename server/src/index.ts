@@ -1,6 +1,9 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import { analyzePending, analyzeReply, draftNudge } from './ai';
+import { GeminiError, geminiConfigured } from './gemini';
+import { llmHandler } from './llmProxy';
 import { paypalRouter, webhookHandler } from './paypalRoutes';
 import { getSummary, listCustomers, listInvoices, listReplies } from './queries';
 import { resetAndSeed, seedIfEmpty } from './seed';
@@ -22,8 +25,40 @@ app.use(cors({ origin: 'http://localhost:5173' }));
 // The webhook needs the untouched request body to check PayPal's signature.
 app.post('/api/paypal/webhook', express.raw({ type: '*/*' }), webhookHandler);
 
+// Agent turns carry tool descriptions and history, so this route accepts a larger body.
+app.post('/api/llm', express.json({ limit: '4mb' }), llmHandler);
+
 app.use(express.json());
 app.use('/api/paypal', paypalRouter);
+
+const aiFail = (res: express.Response, e: unknown) =>
+  res.status(e instanceof GeminiError ? 502 : 400).json({ error: e instanceof Error ? e.message : String(e) });
+
+app.get('/api/ai/status', (_req, res) => res.json({ keyPresent: geminiConfigured(), model: process.env.AI_MODEL || 'gemini-3.5-flash-lite' }));
+
+app.post('/api/replies/analyze-pending', async (_req, res) => {
+  try {
+    res.json(await analyzePending());
+  } catch (e) {
+    aiFail(res, e);
+  }
+});
+
+app.post('/api/replies/:id/analyze', async (req, res) => {
+  try {
+    res.json(await analyzeReply(Number(req.params.id)));
+  } catch (e) {
+    aiFail(res, e);
+  }
+});
+
+app.post('/api/invoices/:id/nudge', async (req, res) => {
+  try {
+    res.json(await draftNudge(Number(req.params.id)));
+  } catch (e) {
+    aiFail(res, e);
+  }
+});
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, app: 'Tallyo', time: new Date().toISOString() });

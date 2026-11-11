@@ -67,9 +67,9 @@ export const defaultReport = {
             cols: [
               { id: 'replies.invoiceNumber' },
               { id: 'replies.customer' },
-              { id: 'replies.receivedAt' },
               { id: 'replies.body' },
               { id: 'replies.intent' },
+              { id: 'replies.actionTaken' },
             ],
           },
         },

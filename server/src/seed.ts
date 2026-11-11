@@ -62,7 +62,7 @@ const replies = [
   { invoice: 12, ago: 4, body: 'I will pay this in two days.', intent: 'promise_to_pay', promisedIn: -2 },
   { invoice: 18, ago: 1, body: "Could you resend the invoice? I can't find the original email.", intent: 'resend_request' },
   // left unclassified on purpose so the AI has something to read in the demo
-  { invoice: 1, ago: 0, body: "We're a bit tight this month. Could we split this into two payments?" },
+  { invoice: 5, ago: 0, body: "We're a bit tight this month. Could we split this into two payments?" },
   { invoice: 20, ago: 0, body: 'Paid yesterday, please check.' },
   { invoice: 22, ago: 0, body: "Was this the invoice for the March retainer? I'll pay once you confirm." },
 ] as const;

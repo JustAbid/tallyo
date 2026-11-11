@@ -25,6 +25,8 @@ You need Node.js 20.19+ or 22.12+.
 
 The server runs on port 3001. On first start it creates a local SQLite database in `server/data/` and fills it with demo data. To reset the demo data, run `npm run seed` in the `server` folder.
 
+AI runs through the server only (`/api/llm`, `/api/replies/...`, `/api/invoices/:id/nudge`), so the Gemini key never reaches the browser. The AI reads customer replies and drafts reminders; plain code decides what actually happens, and a payment only counts as verified when PayPal says so. Use demo data only, since the free Gemini tier may use prompts to improve Google products.
+
 API routes: `/api/invoices`, `/api/customers`, `/api/replies`, `/api/summary`, plus PayPal routes under `/api/paypal` (publish an invoice, sync its status, receive webhooks). Everything talks to the PayPal Sandbox only.
 
 ## Stack

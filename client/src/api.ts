@@ -39,6 +39,9 @@ export interface Reply {
   body: string;
   intent: string | null;
   promisedDate: string | null;
+  summary: string | null;
+  actionTaken: string | null;
+  draftReply: string | null;
 }
 
 async function request<T>(path: string, method = 'GET'): Promise<T> {
@@ -61,4 +64,15 @@ export const publishToPayPal = (id: number) =>
   request<{ paypalInvoiceId: string; payUrl: string }>(`/api/paypal/invoices/${id}/publish`, 'POST');
 export const syncWithPayPal = (id: number) => request<{ outcome: string }>(`/api/paypal/invoices/${id}/sync`, 'POST');
 export const markPaid = (id: number) => request<{ outcome: string }>(`/api/paypal/invoices/${id}/mark-paid`, 'POST');
-export const resetDemo = () => request<{ ok: boolean }>('/api/demo/reset', 'POST');
+export interface ReplyReading {
+  replyId: number;
+  invoice?: string;
+  intent?: string;
+  summary?: string;
+  action?: string;
+  error?: string;
+}
+export const readNewReplies = () => request<ReplyReading[]>('/api/replies/analyze-pending', 'POST');
+export const readReply = (id: number) => request<ReplyReading>(`/api/replies/${id}/analyze`, 'POST');
+export const draftReminder = (id: number) => request<{ invoice: string; subject: string; body: string }>(`/api/invoices/${id}/nudge`, 'POST');
+export const resetDemo =() => request<{ ok: boolean }>('/api/demo/reset', 'POST');

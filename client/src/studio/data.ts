@@ -7,6 +7,8 @@ const intentLabels: Record<string, string> = {
   claims_paid: 'Says already paid',
   dispute: 'Disputes amount',
   resend_request: 'Wants invoice resent',
+  payment_plan_request: 'Wants a payment plan',
+  other: 'Needs a person',
 };
 
 export function buildStudioData(invoices: Invoice[], customers: Customer[], replies: Reply[]) {
@@ -83,6 +85,9 @@ export function buildStudioData(invoices: Invoice[], customers: Customer[], repl
           ...r,
           intent: r.intent ? (intentLabels[r.intent] ?? r.intent) : 'Not read yet',
           promisedDate: r.promisedDate ?? undefined,
+          summary: r.summary ?? '',
+          actionTaken: r.actionTaken ?? '',
+          draftReply: r.draftReply ?? '',
         })),
         fields: [
           { id: 'id', format: 'integerFormat', hide: true },
@@ -93,6 +98,9 @@ export function buildStudioData(invoices: Invoice[], customers: Customer[], repl
           { id: 'body', name: 'Message', format: 'textFormat' },
           { id: 'intent', name: 'What it means', format: 'textFormat' },
           { id: 'promisedDate', name: 'Promised for', format: 'dateFormat', formatOptions: { format: 'dd mmm yyyy' } },
+          { id: 'summary', name: 'Summary', format: 'textFormat' },
+          { id: 'actionTaken', name: 'What Tallyo did', format: 'textFormat' },
+          { id: 'draftReply', name: 'Draft reply', format: 'textFormat' },
         ],
       },
     ],
