@@ -1,10 +1,20 @@
 node_modules/
 dist/
+*.local
+
+# secrets
 .env
 .env.*
 !.env.example
+
+# local data and build output
 *.db
 *.sqlite
 *.log
 *.tsbuildinfo
+
+# editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
 .DS_Store
