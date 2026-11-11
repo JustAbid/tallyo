@@ -8,6 +8,15 @@ import { resetAndSeed, seedIfEmpty } from './seed';
 seedIfEmpty();
 
 const app = express();
+
+// If the server is ever reached through a public tunnel (needed for PayPal webhooks),
+// only the webhook route may be used. Everything else stays local-only.
+app.use((req, res, next) => {
+  const local = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i.test(req.headers.host ?? '');
+  if (!local && req.path !== '/api/paypal/webhook') return res.status(404).end();
+  next();
+});
+
 app.use(cors({ origin: 'http://localhost:5173' }));
 
 // The webhook needs the untouched request body to check PayPal's signature.
