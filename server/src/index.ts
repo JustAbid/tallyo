@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import { paypalRouter, webhookHandler } from './paypalRoutes';
 import { getSummary, listCustomers, listInvoices, listReplies } from './queries';
 import { resetAndSeed, seedIfEmpty } from './seed';
 
@@ -8,7 +9,12 @@ seedIfEmpty();
 
 const app = express();
 app.use(cors({ origin: 'http://localhost:5173' }));
+
+// The webhook needs the untouched request body to check PayPal's signature.
+app.post('/api/paypal/webhook', express.raw({ type: '*/*' }), webhookHandler);
+
 app.use(express.json());
+app.use('/api/paypal', paypalRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, app: 'Tallyo', time: new Date().toISOString() });

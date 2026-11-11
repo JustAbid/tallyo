@@ -1,4 +1,4 @@
-# Tallyo
+﻿# Tallyo
 
 Tallyo helps freelancers and small businesses chase overdue invoices. It reads customer replies ("I'll pay Friday", "I already paid"), tracks promises, and checks PayPal to see whether the money actually arrived.
 
@@ -25,7 +25,7 @@ You need Node.js 20.19+ or 22.12+.
 
 The server runs on port 3001. On first start it creates a local SQLite database in `server/data/` and fills it with demo data. To reset the demo data, run `npm run seed` in the `server` folder.
 
-API routes: `/api/invoices`, `/api/customers`, `/api/replies`, `/api/summary`.
+API routes: `/api/invoices`, `/api/customers`, `/api/replies`, `/api/summary`, plus PayPal routes under `/api/paypal` (publish an invoice, sync its status, receive webhooks). Everything talks to the PayPal Sandbox only.
 
 ## Stack
 

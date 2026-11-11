@@ -57,3 +57,9 @@ db.exec(`
     detail     TEXT
   );
 `);
+
+// databases created before this column existed
+const invoiceColumns = db.prepare('PRAGMA table_info(invoices)').all() as { name: string }[];
+if (!invoiceColumns.some((c) => c.name === 'paypal_pay_url')) {
+  db.exec('ALTER TABLE invoices ADD COLUMN paypal_pay_url TEXT');
+}
