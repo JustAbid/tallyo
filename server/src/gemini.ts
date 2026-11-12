@@ -40,7 +40,7 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export async function generate(
   body: GeminiRequest,
-  options: { model?: string; signal?: AbortSignal } = {},
+  options: { model?: string; signal?: AbortSignal; timeoutMs?: number } = {},
 ): Promise<GeminiResponse & { model: string }> {
   const key = process.env.AI_API_KEY;
   if (!key) throw new GeminiError(500, 'AI_API_KEY is missing from server/.env');
@@ -49,12 +49,19 @@ export async function generate(
   let lastError: GeminiError | undefined;
   for (const model of modelChain(options.model)) {
     for (let attempt = 0; attempt < 2; attempt++) {
-      const res = await fetch(`${BASE}/${model}:generateContent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-        body: JSON.stringify(body),
-        signal: signal ?? AbortSignal.timeout(45_000),
-      });
+      let res: Response;
+      try {
+        res = await fetch(`${BASE}/${model}:generateContent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+          body: JSON.stringify(body),
+          signal: signal ?? AbortSignal.timeout(options.timeoutMs ?? 30_000),
+        });
+      } catch {
+        // a hung or dropped connection: give up on this model and try the next one
+        lastError = new GeminiError(504, 'Gemini took too long to answer');
+        break;
+      }
 
       if (res.ok) return { ...((await res.json()) as GeminiResponse), model };
 

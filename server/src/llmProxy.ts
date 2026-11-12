@@ -1,4 +1,4 @@
-﻿import { randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import type { Request, Response } from 'express';
 import { generate, GeminiError, type GeminiRequest } from './gemini';
 
@@ -126,7 +126,7 @@ export async function llmHandler(req: Request, res: Response) {
 
   try {
     // Studio's tool definitions are intricate, so the agents use a stronger model than the one-shot reader.
-    const result = await generate(toGeminiRequest(req.body as Body), { model: process.env.AI_AGENT_MODEL || 'gemini-3-flash-preview' });
+    const result = await generate(toGeminiRequest(req.body as Body), { model: process.env.AI_AGENT_MODEL || 'gemini-3-flash-preview', timeoutMs: 50_000 });
     const parts = result.candidates?.[0]?.content?.parts ?? [];
     res.json({
       model: result.model,
