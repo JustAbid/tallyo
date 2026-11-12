@@ -65,7 +65,7 @@ server/               Node, Express, SQLite
   src/paypal.ts       sandbox-only PayPal client (invoices, webhook verification)
   src/reconcile.ts    turns what PayPal reports into what Tallyo records
   src/llmProxy.ts     lets Studio's agents use Gemini without exposing the key
-docs/                 submission text, checklist, design notes
+docs/                 Devpost submission text
 ```
 
 ### Where AG Studio is used
@@ -88,3 +88,5 @@ This is a hackathon demo, not a finished product. It has no user accounts, one S
 ## Licence
 
 MIT. See [LICENSE](LICENSE).
+
+Built with the help of Claude AI.

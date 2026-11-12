@@ -1,5 +1,7 @@
 {
   "name": "tallyo",
+  "description": "Overdue-invoice dashboard that reads customer replies and checks PayPal for real payments.",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "dev:server": "npm --prefix server run dev",

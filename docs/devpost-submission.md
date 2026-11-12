@@ -1,6 +1,6 @@
 # Devpost submission text
 
-Paste each section into the matching Devpost field. Edit anything that does not sound like you. Fill in the bracketed parts before submitting.
+The text submitted to Devpost for the PayPal AI Hackathon 2026, kept here for reference.
 
 ## Project name
 
@@ -67,7 +67,7 @@ React, TypeScript, Vite, Node.js, Express, SQLite, PayPal Invoicing API, PayPal 
 ## Tools used (the "model or AI service" field)
 
 - **In the product:** Google Gemini (`gemini-3.5-flash-lite` for reading replies and drafting, `gemini-3-flash-preview` for the chat agents), called from the server.
-- **While building:** Claude Code was used as a coding assistant for much of the implementation. I directed the design, reviewed the work and tested it against the PayPal Sandbox and the AG Studio docs.
+- **While building:** built with the help of Claude AI.
 
 ## Sponsor prize: Best Use of AG Grid
 
@@ -77,9 +77,8 @@ Tallyo uses AG Studio, not only the grid. It has a custom widget, custom cell re
 
 The repository has full setup instructions. In short, you need a PayPal Sandbox app with Invoicing switched on, a free Gemini key and an AG Studio trial licence. With none of them the dashboard still loads with demo data.
 
-- Repository: [add your GitHub link]
-- Hosted demo (optional): [add a link if you deploy one]
-- Video: [add your YouTube link]
+- Repository: https://github.com/JustAbid/tallyo
+- Hosted demo: none. The dashboard runs locally with the setup steps in the README.
 
 ## Testing notes for judges
 
